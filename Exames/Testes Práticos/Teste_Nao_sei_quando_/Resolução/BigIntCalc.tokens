@@ -1,0 +1,11 @@
+T__0=1
+T__1=2
+T__2=3
+NUMBER=4
+ID=5
+COMMENT=6
+WS=7
+ERROR=8
+';'=1
+'show'=2
+'->'=3

@@ -1,0 +1,328 @@
+typeValue ::= [
+	"integer" :  "IntegerType",
+	"real"    :  "RealType",
+	"text"	  :  "TextType",
+	"boolean"	  :  "BooleanType",
+	"table"	  :  "TableType",
+	default   :  "TableType"
+]
+
+booleanValue ::= [
+   "true":"true",
+   "false":"false",
+   default:"null"
+]
+
+
+indentation() ::=  "	"
+
+program(imports, tableclasses, variables, instructions) ::= <<
+package out;
+import Utils.*;
+
+<imports>
+
+<tableclasses>
+
+class Program {
+	public static void main(String args[]) {
+		<variables>
+
+		<instructions>
+	}
+}
+
+>>
+
+importLibrary(libName) ::= <<
+import <libName>;
+
+>>
+
+
+make_t_class(tableName, tableHeader, tableInstructions, formulas) ::= <<
+class <tableName> extends TableType {
+
+	public <tableName>() {
+		<if(tableHeader)>tableHeader = <tableHeader>;<endif>
+		<tableInstructions>
+	}
+
+	<formulas>
+	
+}
+
+>>
+
+make_t_column(colName, colType, colHeader, colFormula) ::= <<
+tempCol = new Column(<colHeader>, "<typeValue.(colType)>", <colFormula>);
+columns.put("<colName>", tempCol);
+
+>>
+
+make_t_formula(colType, colFormulaName, colFormula, args, ifNull) ::= <<
+public <typeValue.(colType)> <colFormulaName>(int rowIndex) {
+	<args>
+	<ifNull>
+	return <colFormula>;
+}
+
+>>
+
+make_t_elseif(formulaName) ::= <<
+if (col.getFormula() == "<formulaName>") {
+	col.put(<formulaName>(activeRowID));
+	continue;
+}
+
+>>
+
+make_t_addRow_Override(formulaName) ::= <<
+@Override
+public void addRow(Type[] values) {
+	int colIndex = 0;
+	//  Add all the new data values
+	for (Column col : columns.values()) {
+		if (col.getFormula() == null) {
+			col.put(values[colIndex]);
+			colIndex++;
+		}
+	}
+	//  Calculate all the formula columns
+	for (Column col : columns.values()) {
+		if (col.getFormula() != null) {
+			<formulaName>
+		}
+	}
+
+	activeRowID++;
+	return;
+}
+
+>>
+
+make_t_formula_OLD(colType, colFormulaName, colFormula, args) ::= <<
+public <typeValue.(colType)> <colFormulaName>(<args>) {
+	return <colFormula>;
+}
+
+>>
+
+instanciate_util_class(utilName, varName, utilArgs) ::= << 
+<utilName> <varName> = new <utilName>(<utilArgs>);
+
+>>
+
+var_show(name) ::=<<
+<name>.show();
+
+>>
+
+var_assign_bool(name, value) ::= <<
+<name> = <value>(); 
+
+>>
+
+var_init(value) ::=
+"<if(value)> = <value><endif>"
+
+
+var_declaration(name, type) ::= <<
+<typeValue.(type)> <name>;
+
+>>
+
+
+var_decl_value(name, type) ::=<<
+<typeValue.(type)> <name>;
+
+>>
+
+
+var_set_new_type(name, type) ::= <<
+<name> = new <typeValue.(type)>(); 
+
+>>
+
+var_set_new_class(name, class) ::= <<
+<name> = new <class>(); 
+
+>>
+
+var_set(name, expr) ::= <<
+<name>.set(<expr>);
+
+>>
+
+
+var_copy_table(name, tableName, colName) ::= <<
+<name> = <tableName>.getTable();
+
+>>
+
+
+var_copy_col(name, tableName, colName) ::= <<
+<name>.resetCols();
+<name>.copyColAtributes("<colName>", <tableName>, "<colName>");
+
+>>
+
+
+var_set_from_row(name, tableName, colName) ::= <<
+<name> = <tableName>.getCol("<colName>");
+
+>>
+
+
+var_load_file(name, fileName) ::= <<
+<name>.readFile("<fileName>");
+
+>>
+
+var_read_file_col_number(name, fileName, fileCol, colName) ::= <<
+<name>.readFileColByNumber("<fileName>", <fileCol>, "<colName>");
+
+>>
+
+var_read_file_col_name(name, fileName, fileColName, colName) ::= <<
+<name>.readFileColByName("<fileName>", <fileColName>, "<colName>");
+
+>>
+
+
+var_assign_to_col(tableName, colName, value) ::=<<
+<tableName>.setValOfCol("<colName>", <value>);
+
+>>
+
+
+var_copy_col_to_col(tableName, colName, OGtableName, OGcolName) ::=<<
+<tableName>.setCopyCol(<colName>, <OGtableName>, "<OGcolName>");
+
+>>
+
+var_copy_col_to_table(tableName, OGtableName, OGcolName) ::=<<
+<tableName>.resetCols();
+<tableName>.setCopyCol("<OGcolName>", <OGtableName>, "<OGcolName>");
+
+>>
+
+
+print_error() ::=<<
+ErrorLogger.printLastError();
+ErrorLogger.removeLastError();
+
+>>
+
+print_expr(expr, center) ::=<<
+System.out.print(<expr><if(center)>, <center><endif>);
+
+>>
+
+
+println_expr(expr, center) ::=<<
+System.out.printf("%"+<if(center)><center>+<endif>"s\n", <expr>);
+
+>>
+
+
+table_create(tableName) ::= <<
+"new Table(<tableName>);"
+
+>>
+
+table_add_column(colName, colType, colHeader, colFormula) ::=
+"new Table(<colName>, <colType>, <colHeader>, <colFormula>)"
+
+
+table_set_main_header(tableName, newHeader) ::= <<
+<tableName>.setMainHeader(<newHeader>);
+
+>>
+
+table_set_col_header(tableName, colName, colHeader) ::= <<
+<tableName>.setColHeader("<colName>", <colHeader>);
+
+>>
+
+table_set_col_type(tableName, colName, type) ::= <<
+tableName.setColType("<colName>", <type>);
+
+>>
+
+table_add_row(tableName, valueArray, valueType) ::= <<
+<tableName>.addRow(<valueArray>);
+
+>>
+
+table_add_col(colName, colType, colHeader) ::= <<
+<colName>.addCol(<colType><if(colHeader)>, <colHeader><endif>);
+
+>>
+
+
+start_for_loop(variable, varType, tableName) ::= <<
+for (<varType> <variable> : <tableName>.getRows()) {
+
+>>
+
+end_for_loop() ::= <<
+}
+
+>>
+
+start_if(condition) ::= <<
+if (<condition>) {
+
+>>
+
+start_else() ::= <<
+else {
+
+>>
+
+literal(n,d) ::= "(new Table(<n>, <d>))"
+
+instanciate_t_class(tableClassName) ::= "(new <tableClassName>())"
+
+use_util(utilName, function, utilArgs) ::= "<utilName>.<function>(<if(utilArgs)> <utilArgs> <endif>)"
+
+integer(varName) ::= "<varName>"
+real(varName) ::= "<varName>"
+text(varName) ::= "<varName>"
+boolean(varName) ::= "<varName>"
+
+
+mul(a,b) ::= "<a>.mul(<b>)"
+div(a,b) ::= "<a>.div(<b>)"
+sum(a,b) ::= "<a>.sum(<b>)"
+sub(a,b) ::= "<a>.sub(<b>)"
+
+minus(a) ::= "<a>.minus()"
+
+isEqual(a,b) ::= "<a>.equals(<b>)"
+isNotEqual(a,b) ::= "<a>.notEquals(<b>)"
+
+higher(a,b) ::= "<a>.higher(<b>)"
+lower(a,b) ::= "<a>.lower(<b>)"
+higher_equal(a,b) ::= "<a>.higherEquals(<b>)"
+lower_equal(a,b) ::= "<a>.lowerEquals(<b>)"
+
+
+toInteger(a) ::= "new TextType(<a>)"
+toReal(a) ::= "new RealType(<a>)"
+toText(a) ::= "new TextType(<a>)"
+
+variable(name) ::= "<name>"
+tableCol(tableName, colName) ::= "<tableName>.<colName>"
+table_length(tableName, colName) ::= "<tableName>.colLength(\"<colName>\")"
+
+get_col_value(tableName, colName) ::= "<tableName>.getColValue(\"<colName>\")"
+
+readIn(colName) ::= "readCol(<colName>)"
+
+actualBoolean(value) ::= "<booleanValue.(value)>"
+
+checkError() ::= "ErrorLogger.error()"
+
+

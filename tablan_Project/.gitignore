@@ -1,0 +1,6 @@
+.vscode
+
+# Não incluir tretas do ANTLR4 nem do Java.
+*.class
+*.interp
+*.tokens

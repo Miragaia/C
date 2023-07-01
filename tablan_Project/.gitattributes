@@ -1,0 +1,5 @@
+# Usar formato de Linux nos scripts Bash.
+# Sem isto, o Git no Windows estraga-os sempre quando uso o "Windows Subsystem for Linux" :D
+*.sh eof=lf
+*.sh eof=lf
+*.sh eof=lf

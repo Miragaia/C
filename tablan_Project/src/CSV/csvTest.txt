@@ -1,0 +1,5 @@
+fname, lname, age
+Daniel, Madureira, 20
+Joana, Ferreira, 25
+Paulo, ESteves, 15
+Afonso, Dias, 4
