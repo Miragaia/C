@@ -1,4 +1,6 @@
 # Tema **TabLan**, grupo **tablan-01**
+
+# Nota: 14.2
 -----
 
 ## 1. Constituição dos grupos e participação individual global
